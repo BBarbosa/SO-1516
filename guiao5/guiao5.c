@@ -174,8 +174,29 @@ void exercise2() {
 }
 
 /* Exercicio 3
+ * Processo pai envia linhas de texto
+ * Processo filho executa wc
  */
+void exercise3() {
+  int fd[2];
+  char c1;
 
+  pipe(fd);
+
+  if(fork() == 0) {
+    // child process
+    dup2(fd[0],0);
+    close(fd[0]);
+    close(fd[1]);
+    execlp("wc","wc",NULL);
+  } else {
+    close(fd[0]);
+    while(read(0,&c1,1) > 0) {
+      write(fd[1],&c1,1);
+    }
+    close(fd[1]);
+  }
+}
 
 // main
 int main(int argc, char *argv[]) {
@@ -211,6 +232,11 @@ int main(int argc, char *argv[]) {
 
         case 2 : {
           exercise2();
+          break;
+        }
+
+        case 3 : {
+          exercise3();
           break;
         }
       }

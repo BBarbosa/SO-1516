@@ -198,6 +198,108 @@ void exercise3() {
   }
 }
 
+/* Exercicio 4
+ * Emular o funcionamento de
+ * $ ls /etc | wc -l
+ */
+void exercise4() {
+  int fd[2];
+
+  pipe(fd);
+
+  if(fork() == 0) {
+    // child process
+    dup2(fd[0],0);
+    close(fd[0]);
+    close(fd[1]);
+    execlp("wc","wc","-l",NULL);
+  } else {
+    close(fd[0]);
+    dup2(fd[1],1);
+    execlp("ls","ls","/etc",NULL);
+    close(fd[1]);
+  }
+}
+
+/* Exercicio 5
+ * $ grep -v ^# /etc/passwd | cut -f7 -d: | uniq | wc -l
+ */
+void exercise5() {
+  int fd[2];
+  int status;
+  int d1;
+
+  d1 = dup(1);
+
+  pipe(fd);
+
+  if(fork() == 0) {
+    // child process 1
+    if(fork() == 0) {
+      // child process 2
+      if(fork() == 0) {
+        // child process 3
+        dup2(fd[1],1); // redireciona o STOUT para o pipe
+        close(fd[0]);
+
+        //execlp("wc","wc","-l",NULL);
+        execlp("grep","grep","-v","^#","/etc/passwd",NULL);
+        close(fd[1]);
+
+        _exit(1);
+      } else {
+        wait(0); // espera pela morte do filho para seguir a execucao
+
+        dup2(fd[0],0);
+        dup2(fd[1],1);
+        //close(fd[0]);
+
+        //execlp("uniq","uniq",NULL);
+        execlp("cut","cut","-f7","-d:",NULL);
+        close(fd[1]);
+
+        _exit(1);
+      }
+    } else {
+      wait(0); // espera pela morte do filho para seguir a execucao
+
+      dup2(fd[0],0);
+      dup2(fd[1],1);
+      //close(fd[0]);
+
+      //execlp("cut","cut","-f7","-d:",NULL);
+      execlp("uniq","uniq",NULL);
+      close(fd[1]);
+
+      _exit(1);
+
+    }
+  } else {
+    wait(0);
+
+    dup2(fd[0],0);
+    dup2(fd[1],1);
+
+    //execlp("grep","grep","-v","^#","/etc/passwd",NULL);
+    execlp("wc","wc","-l",NULL);
+
+    close(fd[1]);
+    close(fd[0]);
+  }
+}
+
+/* Exercicio 6
+ */
+void exercise6(char *argv[], int argc) {
+
+}
+
+/* Exercicio 7
+ */
+void exercise7() {
+
+}
+
 // main
 int main(int argc, char *argv[]) {
   int e;
@@ -237,6 +339,26 @@ int main(int argc, char *argv[]) {
 
         case 3 : {
           exercise3();
+          break;
+        }
+
+        case 4 : {
+          exercise4();
+          break;
+        }
+
+        case 5 : {
+          exercise5();
+          break;
+        }
+
+        case 6 : {
+          exercise6(argv+2,argc-2);
+          break;
+        }
+
+        case 7 : {
+          exercise7();
           break;
         }
       }

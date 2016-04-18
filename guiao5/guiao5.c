@@ -223,69 +223,68 @@ void exercise4() {
 
 /* Exercicio 5
  * $ grep -v ^# /etc/passwd | cut -f7 -d: | uniq | wc -l
+ * Sentido: filho para o pai
  */
 void exercise5() {
-  int fd[2];
+  int fd1[2],fd2[2],fd3[2];
   int status;
-  int d1;
 
-  d1 = dup(1);
-
-  pipe(fd);
+  pipe(fd1);
 
   if(fork() == 0) {
     // child process 1
+    pipe(fd2);
     if(fork() == 0) {
       // child process 2
+      pipe(fd3);
       if(fork() == 0) {
         // child process 3
-        dup2(fd[1],1); // redireciona o STOUT para o pipe
-        close(fd[0]);
-
-        //execlp("wc","wc","-l",NULL);
+        close(fd3[0]);
+        dup2(fd3[1],1); // redireciona o STOUT para o pipe
         execlp("grep","grep","-v","^#","/etc/passwd",NULL);
-        close(fd[1]);
-
+        close(fd3[0]);
+        close(fd3[1]);
         _exit(1);
       } else {
         wait(0); // espera pela morte do filho para seguir a execucao
-
-        dup2(fd[0],0);
-        dup2(fd[1],1);
-        //close(fd[0]);
-
-        //execlp("uniq","uniq",NULL);
+        dup2(fd3[0],0); // redireciona o STDIN do pipe
+        dup2(fd2[1],1); // redireciona o STOUT para o pipe
+        close(fd2[0]);
+        close(fd2[1]);
+        close(fd3[0]);
+        close(fd3[1]);
         execlp("cut","cut","-f7","-d:",NULL);
-        close(fd[1]);
-
         _exit(1);
       }
     } else {
-      wait(0); // espera pela morte do filho para seguir a execucao
-
-      dup2(fd[0],0);
-      dup2(fd[1],1);
-      //close(fd[0]);
-
-      //execlp("cut","cut","-f7","-d:",NULL);
+      dup2(fd2[0],0);
+      dup2(fd1[1],1);
+      close(fd1[0]);
+      close(fd1[1]);
+      close(fd2[0]);
+      close(fd2[1]);
       execlp("uniq","uniq",NULL);
-      close(fd[1]);
-
+      wait(0); // espera pela morte do filho para seguir a execucao
       _exit(1);
-
     }
   } else {
-    wait(0);
-
-    dup2(fd[0],0);
-    dup2(fd[1],1);
-
-    //execlp("grep","grep","-v","^#","/etc/passwd",NULL);
+    dup2(fd1[0],0);
+    close(fd1[1]);
+    close(fd1[0]);
     execlp("wc","wc","-l",NULL);
-
-    close(fd[1]);
-    close(fd[0]);
+    wait(0);
   }
+}
+
+/* Exercicio 5 (Alternativa)
+ * Algoritmo que garante a execucao de qualquer pipeline
+ * Executa dinamicamente.
+ */
+void exercicio5_alt(char *argv[], int argc) {
+  int i;
+
+  for(i=)
+
 }
 
 /* Exercicio 6
@@ -349,6 +348,11 @@ int main(int argc, char *argv[]) {
 
         case 5 : {
           exercise5();
+          break;
+        }
+
+        case 51 : {
+          exercicio5_alt(argv+2,argc-2);
           break;
         }
 

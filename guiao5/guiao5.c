@@ -13,6 +13,7 @@
 #include<sys/stat.h>
 #include<sys/types.h>
 #include<fcntl.h>
+#include<string.h>
 
 #define MAX 32
 
@@ -227,7 +228,6 @@ void exercise4() {
  */
 void exercise5() {
   int fd1[2],fd2[2],fd3[2];
-  int status;
 
   pipe(fd1);
 
@@ -281,10 +281,37 @@ void exercise5() {
  * Executa dinamicamente.
  */
 void exercicio5_alt(char *argv[], int argc) {
-  int i;
+  int i,p,fd[2],v;
 
-  for(i=)
+  // counts how many pipes exist (using char ',')
+  for(i=0,p=1;i<argc;i++) {
+    v=0;
+    if(strcmp(argv[i],",") == 0) {
+      v=1;
+      p++;
+      argv[p] = strcpy(argv[p],argv[i]);
+    }
 
+    if(i != 0 && v != 1){
+      argv[p] = strcat(argv[p],argv[i]);
+    }
+  }
+
+  for(i=0;i<p;i++) {
+    printf("argv[%d] = %s\n",i,argv[i]);
+  }
+  /*
+  for(i=0;i<p;i++) {
+    if(fork() == 0) {
+      dup2(fd[0],0);
+      close(fd[0]);
+      close(fd[1]);
+
+    }
+  }
+  */
+
+  printf("There are %d pipes\n",p);
 }
 
 /* Exercicio 6

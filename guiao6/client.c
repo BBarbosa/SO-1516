@@ -1,6 +1,6 @@
 /* Sistemas Operativos
  * Guiao 6
- * 18/04/2016
+ * 02/05/2016
  * Bruno Barbosa (a67646)
  * Objectivos: (1) familiarizar as chamadas ao sistema relativas
                    a criacao de pipes com nome
@@ -15,23 +15,19 @@
 #include<fcntl.h>
 
 
-
-
-// main
+// client code
 int main(int argc, char *argv[]) {
-  int e;
+  char b;
+  int fd;
 
-  if(argc >= 2) {
-      e = atoi(argv[1]);
-      switch (e) {
-        case 1 : {
+  if(argc < 2) exit(1);
 
-        }
-      }
-  } else {
-    printf("ERROR: Check the number of arguments\n");
-    //example1("exemplo1.txt");
+  fd = open(argv[1],O_WRONLY);
+  // ends with Ctrl + D
+  while(read(0,&b,1) > 0) {
+    write(fd,&b,1);
   }
+  close(fd);
 
   return 0;
 }

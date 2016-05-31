@@ -111,7 +111,13 @@ void executeListOfPrograms(int argc, char *argv[]) {
 void mySystem(int argc, char *argv[]) {
   int r;
   if (argc > 2) {
-    execl("/bin/sh","/bin/sh","-c",argv+2,NULL);
+    if(fork() == 0) {
+      //execl("/bin/sh","/bin/sh","-c",argv+2,NULL);
+      execvp("grep",argv+2);
+    } else {
+      
+    }
+
   }
 }
 

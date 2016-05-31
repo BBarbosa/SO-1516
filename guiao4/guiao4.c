@@ -58,7 +58,7 @@ void redirect() {
     write(2,buffer,readed);
   }
 
-  // close backup FDs
+  // restore original FDs
   dup2(d0,0);
   dup2(d1,1);
   dup2(d2,2);
@@ -85,8 +85,8 @@ void childRedirect() {
 
   // open files
   fde = open("/etc/passwd", O_RDONLY);
-  fds = open("saida.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
-  fder = open("erros.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+  fds = open("fsaida.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+  fder = open("ferros.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
   // save the original FDs
   d0 = dup(0);
   d1 = dup(1);
@@ -119,6 +119,51 @@ void childRedirect() {
   close(fder);
 }
 
+/* Exercicio 3
+ * Igual ao Exercicio 1 mas usa o WC
+ */
+void redirectWithWC() {
+  int fde,fds,fder,readed;
+  int d0,d1,d2;
+  char buffer[256];
+
+  // open files
+  fde = open("/etc/passwd", O_RDONLY);
+  fds = open("saida.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+  fder = open("erros.txt", O_CREAT | O_WRONLY | O_TRUNC, 0666);
+  // save the original FDs
+  d0 = dup(0);
+  d1 = dup(1);
+  d2 = dup(2);
+  // duplicate the original FDs to the designated files
+  dup2(fde,0); // passwd
+  //dup2(fds,1);
+  //dup2(fder,2);
+
+  //dup2(1,1); // print on terminal
+  execlp("wc","wc",NULL);
+  _exit(0);
+
+  while((readed = read(0,buffer,256)) > 0) {
+    write(fds,buffer,readed);
+    write(fder,buffer,readed);
+  }
+
+  // restore original FDs
+  dup2(d0,0);
+  dup2(d1,1);
+  dup2(d2,2);
+  // close duplicated original FDs
+  close(d0);
+  close(d1);
+  close(d2);
+  // close files FDs
+  close(fde);
+  close(fds);
+  close(fder);
+}
+
+
 // main
 int main(int argc, char *argv[]) {
   int e;
@@ -138,6 +183,11 @@ int main(int argc, char *argv[]) {
 
         case 2 : {
           childRedirect();
+          break;
+        }
+
+        case 3 : {
+          redirectWithWC();
           break;
         }
       }

@@ -80,12 +80,20 @@ void example3() {
 
 /* Exercicio 1
  * Programa que conta o tempo em segundos
- * Ctrl + C → imprime o tempo passado
- * Ctrl + \ → imprime quantas vezes foi imprimido o tempo
+ * Ctrl + C → imprime o tempo passado (SIGINT)
+ * Ctrl + \ → imprime quantas vezes foi imprimido o tempo (SIGQUIT)
  *          → termina o programa
  */
-void hand1(int s ) {
+void hand1(int s) {
+  switch(s) {
+    case SIGINT : {
+      break;
+    }
 
+    case SIGQUIT : {
+      break;
+    }
+  }
 }
 void exercise1() {
 

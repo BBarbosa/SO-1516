@@ -15,9 +15,12 @@
 #include<fcntl.h>
 #include<signal.h>
 
+#define MAX 5
 
 int var = 0;
-int seg = 0;
+int sec = 0;
+int e = 0;
+int proc = 0; // process ID
 
 void hand(int s) {
 
@@ -61,18 +64,24 @@ void example2() {
 
 /* Exercicio exemplo 3 */
 void hand13(int s) {
-  seg++;
+  sec++;
 }
 
 void show(int s) {
-  printf("%d:%d:%d\n",seg/3600,seg/60,seg%60);
+  printf("%d:%d:%d\n",sec/3600,sec/60,sec%60);
+}
+
+void exitP(int s) {
+  e = 1;
 }
 
 void example3() {
-  signal(SIGALARM,hand3);
+  e = 0;
+  signal(SIGALRM,hand13);
   signal(SIGINT,show);
-
-  while(1) {
+  signal(SIGQUIT,exitP);
+  printf("%d\n",getpid());
+  while(!e) {
     alarm(1);
     pause();
   }
@@ -87,17 +96,101 @@ void example3() {
 void hand1(int s) {
   switch(s) {
     case SIGINT : {
+      printf("%d:%d:%d\n",sec/3600,sec/60,sec%60);
       break;
     }
 
     case SIGQUIT : {
+      e=1;
+      break;
+    }
+
+    case SIGALRM : {
+      sec++;
       break;
     }
   }
 }
-void exercise1() {
 
+void exercise1() {
+  signal(SIGINT,hand1);
+  signal(SIGQUIT,hand1);
+  signal(SIGALRM,hand1);
+
+  e = 0; sec = 0;
+  printf("%d\n",getpid());
+  while(!e) {
+    alarm(1);
+    pause();
+  }
 }
+
+
+/* Exercicio 2
+ * Simulação Round Robin
+ */
+void hand2(int s) {
+  switch(s) {
+   case SIGCONT : {
+     break;
+   }
+
+   case SIGSTOP : {
+     break;
+   }
+
+   case SIGCHLD : {
+     break;
+   }
+  }
+}
+
+int createProcess(char *p) {
+  if(fork() == 0) {
+    execlp(p,p,NULL);
+  }
+  return getpid();
+}
+
+/*
+void exercise2(int nprocs, char *argv[]) {
+  int i;
+
+  for(i=0;i<nprocs;i++) {
+    pids[i] = createProcess(argv[i+2]);
+  }
+
+  while(1) {
+    for(i=0;i<nprocs;i++) {
+      if(i==0) {
+        kill(pids[(proc+i) % nprocs],SIGCONT);
+      } else {
+        kill(pids[(proc+i) % nprocs],SIGSTOP);
+      }
+    }
+    sleep(2); puts("sleep");
+    proc = (proc+1) % nprocs;
+  }
+}
+*/
+
+void exercise2(int nprocs, char *argv[]) {
+  int pid;
+  signal(SIGCONT,hand2);
+  signal(SIGSTOP,hand2);
+  signal(SIGCHLD,hand2);
+
+  if(nprocs > 0) {
+    if(fork() == 0) {
+      exercise2(nprocs-1,argv+1);
+      _exit(0);
+    } else {
+      pid = wait(0);
+      execlp(*argv,*argv,NULL);
+    }
+  }
+}
+
 
 // main
 int main(int argc, char *argv[]) {
@@ -122,7 +215,13 @@ int main(int argc, char *argv[]) {
         }
 
         case 1 : {
+          exercise1();
+          break;
+        }
 
+        case 2 : {
+          exercise2(argc-2,argv+2);
+          break;
         }
       }
   } else {

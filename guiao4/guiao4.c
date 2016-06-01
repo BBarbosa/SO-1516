@@ -137,17 +137,18 @@ void redirectWithWC() {
   d2 = dup(2);
   // duplicate the original FDs to the designated files
   dup2(fde,0); // passwd
-  //dup2(fds,1);
-  //dup2(fder,2);
 
   //dup2(1,1); // print on terminal
+  if(fork() == 0) {
+    while((readed = read(0,buffer,256)) > 0) {
+      write(fds,buffer,readed);
+      write(fder,buffer,readed);
+    }
+    _exit(0);
+  }
+
   execlp("wc","wc",NULL);
   _exit(0);
-
-  while((readed = read(0,buffer,256)) > 0) {
-    write(fds,buffer,readed);
-    write(fder,buffer,readed);
-  }
 
   // restore original FDs
   dup2(d0,0);

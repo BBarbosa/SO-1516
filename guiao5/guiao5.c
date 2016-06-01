@@ -1,6 +1,6 @@
 /* Sistemas Operativos
  * Guiao 5
- * 11/04/2016
+ * 11/04/2016 
  * Bruno Barbosa (a67646)
  * Objectivos: (1) familiarizar as chamadas ao sistema relativas
                    a criacao de pipes anonimos

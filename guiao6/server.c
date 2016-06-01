@@ -14,21 +14,34 @@
 #include<sys/types.h>
 #include<fcntl.h>
 
+#define LINE 256
 
 // server code
 int main(int argc, char *argv[]) {
-  char b;
-  int fd;
+  char b[LINE];
+  int fd,fd2,r;
 
-  if(argc < 2) exit(1);
+  if(argc < 3) exit(1);
 
   while(1) {
     fd = open(argv[1],O_RDONLY);
-    // ends with Ctrl + D
-    while(read(fd,&b,1) > 0) {
-      write(1,&b,1);
+    fd2 = open(argv[2],O_WRONLY);
+
+    if(fd == -1 || fd2 == -1) exit(1);
+
+    if(fork()==0) {
+      while((r=read(fd,b,256)) > 0) {
+        write(1,b,r);
+      }
+      _exit(0);
     }
+
+    while((r=read(0,b,256)) > 0) {
+      write(fd2,b,r);
+    }
+
     close(fd);
+    close(fd2);
   }
 
   return 0;

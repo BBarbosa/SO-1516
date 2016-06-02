@@ -20,7 +20,6 @@
 int var = 0;
 int sec = 0;
 int e = 0;
-int proc = 0; // process ID
 
 void hand(int s) {
 
@@ -132,62 +131,49 @@ void exercise1() {
 void hand2(int s) {
   switch(s) {
    case SIGCONT : {
-     break;
+    break;
    }
 
    case SIGSTOP : {
-     break;
+    break;
    }
 
    case SIGCHLD : {
-     break;
+   	printf("Died child process with PID %d\n",getpid());
+    break;
    }
   }
 }
 
-int createProcess(char *p) {
-  if(fork() == 0) {
-    execlp(p,p,NULL);
-  }
-  return getpid();
-}
-
-/*
 void exercise2(int nprocs, char *argv[]) {
-  int i;
-
-  for(i=0;i<nprocs;i++) {
-    pids[i] = createProcess(argv[i+2]);
-  }
-
-  while(1) {
-    for(i=0;i<nprocs;i++) {
-      if(i==0) {
-        kill(pids[(proc+i) % nprocs],SIGCONT);
-      } else {
-        kill(pids[(proc+i) % nprocs],SIGSTOP);
-      }
-    }
-    sleep(2); puts("sleep");
-    proc = (proc+1) % nprocs;
-  }
-}
-*/
-
-void exercise2(int nprocs, char *argv[]) {
-  int pid;
+  int pid,i,proc=0;
   signal(SIGCONT,hand2);
   signal(SIGSTOP,hand2);
   signal(SIGCHLD,hand2);
+  signal(SIGCHLD, SIG_IGN);
 
-  if(nprocs > 0) {
-    if(fork() == 0) {
-      exercise2(nprocs-1,argv+1);
-      _exit(0);
-    } else {
-      pid = wait(0);
-      execlp(*argv,*argv,NULL);
-    }
+  // create child processes
+  for(i=0;i<nprocs;i++) {
+  	if(fork() == 0) {
+  		execlp(*(argv+i),*(argv+i),NULL);
+  		_exit(i+1);
+  	}
+  }
+
+  // simulates RR scheduler
+  while(1) {
+  	for(i=0;i<nprocs;i++) {
+  		if(i == proc) {
+  			// continue
+  			kill(getpid()+i+1,SIGCONT);
+  		} else {
+  			// stops
+  			kill(getpid()+i+1,SIGSTOP);
+  		}
+  	}
+  	proc = (proc+1) % nprocs;
+  	//printf("Process Running %d\n",proc+1);
+  	sleep(3);
   }
 }
 
